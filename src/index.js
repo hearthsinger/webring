@@ -1,0 +1,69 @@
+import express from 'express';
+import {RING_MEMBER_DEFINITIONS} from './ring.js';
+import { RingError, NotFoundError, BadRequestError, ErrorCode } from './errors.js';
+const port = process.env.PORT ?? 8080;
+
+async function bootstrap() {
+  const app = express();
+
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use((req, res, next) => {
+ 
+    console.log(`${new Date().toISOString()}:[START]\t${req.method} ${req.path}`);
+    const originalSend = res.send;
+    res.send = (...args) => {
+      console.log(`${new Date().toISOString()}:[END]\t\t${req.method} ${req.path} (${res.statusCode})`);
+      return originalSend.apply(res, args);
+    };
+
+    const originalRedir = res.redirect;
+
+    res.redirect = (...args) => {
+      console.log(`${new Date().toISOString()}:[REDIR]\t${req.method} ${req.path} -> (${args[0]})`);
+      return originalRedir.apply(res, args);
+    }
+
+    next();
+
+  });
+
+  app.get('/:key/:direction', (req, res, next) => {
+    const { key, direction } = req.params;
+
+    try {
+      if(!(['next', 'prev']).includes(direction)){
+        throw new BadRequestError('Invalid ring direction - expected one of "prev" or "next"');
+      }
+
+      if( !(key in RING_MEMBER_DEFINITIONS) ) {
+        throw new NotFoundError('Invalid ring member');
+      }
+
+      return res.redirect(RING_MEMBER_DEFINITIONS[key].node[direction].url);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.use((error, req, res, next) => {
+    if( error instanceof RingError && error.httpError ){ 
+      return res.status(error.httpError).json({
+        error: error.message,
+        errorCode: error.errorCode
+      });
+    }
+    return res.status(500).json({
+      error: 'message',
+      errorCode: ErrorCode.GenericError
+    });
+  });
+
+  app.listen(port);
+  return app;
+};
+
+(async () => {
+  await bootstrap();
+  console.log(`Listening on port ${port}`);
+})();
