@@ -1,4 +1,8 @@
 'use strict';
+/**
+ * @file Main entrypoint for the webring
+ * @author Asteria Hart <asteria@strawbs.io>
+ */
 import express from 'express';
 import {RING_MEMBER_DEFINITIONS} from './ring.js';
 import { RingError, NotFoundError, BadRequestError, ErrorCode } from './errors.js';
