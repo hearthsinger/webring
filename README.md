@@ -7,7 +7,7 @@ top of the `ring.js` file.
 
 ## Contributing
 
-This project uses `[pre-commit](https://pre-commit.com)` to enforce that the
+This project uses [`pre-commit`](https://pre-commit.com) to enforce that the
 configured formatter (`prettier`) is run on all files and comes back clean.
 
 Documentation for installing `pre-commit` can be found elsewhere, it is
