@@ -1,12 +1,12 @@
 'use strict';
-/** 
+/**
  * @file Error subclasses and enums for the webring
- * @author Asteria Hart <asteria@strawbs.io> 
+ * @author Asteria Hart <asteria@strawbs.io>
  */
 
-/** 
- * Object enum containing defined error codes 
- * @readonly 
+/**
+ * Object enum containing defined error codes
+ * @readonly
  * @enum {string} error codes
  * */
 export const ErrorCode = Object.freeze({
@@ -23,7 +23,7 @@ export const ErrorCode = Object.freeze({
   /** Represents a known runtime/request-time error for one of the ring's integrations */
   IntegrationRuntimeError: 'E3002',
   /** Represents a generic error */
-  GenericError: 'E9999'
+  GenericError: 'E9999',
 });
 
 /**
@@ -39,7 +39,7 @@ export const HttpStatusCode = Object.freeze({
   /** Represents a 404 Not Found - this is a client error */
   NotFound: 404,
   /** Represents a 500 Internal Server Error - this is a server error */
-  InternalServerError: 500
+  InternalServerError: 500,
 });
 
 /**
@@ -50,16 +50,19 @@ export const HttpStatusCode = Object.freeze({
 export class RingError extends Error {
   errorCode = null;
   httpError = null;
-  constructor(msg, extensions = {errorCode: ErrorCode.GenericError, httpError: undefined}) {
+  constructor(
+    msg,
+    extensions = { errorCode: ErrorCode.GenericError, httpError: undefined },
+  ) {
     super(msg);
 
-    if(this.constructor === 'RingError') {
+    if (this.constructor === 'RingError') {
       throw new Error('RingError cannot be instantiated directly');
     }
-  
+
     this.errorCode = extensions.errorCode ?? ErrorCode.GenericError;
     this.httpError = extensions.httpError ?? null;
-  };
+  }
 }
 
 /**
@@ -68,7 +71,7 @@ export class RingError extends Error {
  */
 export class RingDataError extends RingError {
   constructor(msg = 'Received invalid Ring data') {
-    super(msg, {errorCode: ErrorCode.BadRingData});
+    super(msg, { errorCode: ErrorCode.BadRingData });
   }
 }
 
@@ -78,7 +81,7 @@ export class RingDataError extends RingError {
  */
 export class RingMemberError extends RingError {
   constructor(msg = 'Received invalid Ring Member data') {
-    super(msg, {errorCode: ErrorCode.BadRingMember});
+    super(msg, { errorCode: ErrorCode.BadRingMember });
   }
 }
 
@@ -88,9 +91,9 @@ export class RingMemberError extends RingError {
  */
 export class NotFoundError extends RingError {
   constructor(msg = 'Ring member not found') {
-    super(msg , {
+    super(msg, {
       errorCode: ErrorCode.RequestHandlingError,
-      httpError: HttpStatusCode.NotFound
+      httpError: HttpStatusCode.NotFound,
     });
   }
 }
@@ -103,7 +106,7 @@ export class BadRequestError extends RingError {
   constructor(msg = 'Bad ring member request') {
     super(msg, {
       errorCode: ErrorCode.RequestHandlingError,
-      httpError: HttpStatusCode.BadRequest
+      httpError: HttpStatusCode.BadRequest,
     });
   }
 }
@@ -116,7 +119,7 @@ export class UnknownError extends RingError {
   constructor(msg = 'An unknown error occurred') {
     super(msg, {
       errorCode: ErrorCode.GenericError,
-      httpError: HttpStatusCode.InternalServerError
+      httpError: HttpStatusCode.InternalServerError,
     });
   }
 }
@@ -124,10 +127,13 @@ export class UnknownError extends RingError {
 export class IntegrationError extends RingError {
   _integrationId = null;
 
-  constructor(integrationId, msg = 'An error occurred with one of the ring\'s integrations') {
+  constructor(
+    integrationId,
+    msg = "An error occurred with one of the ring's integrations",
+  ) {
     super(msg, {
       errorCode: ErrorCode.IntegrationError,
-      httpError: HttpStatusCode.InternalServerError
+      httpError: HttpStatusCode.InternalServerError,
     });
 
     this._integrationId = integrationId;
@@ -135,19 +141,25 @@ export class IntegrationError extends RingError {
 }
 
 export class IntegrationConfigError extends IntegrationError {
-  constructor(integrationId, msg = 'An error occurred during configuration for an integration') {
+  constructor(
+    integrationId,
+    msg = 'An error occurred during configuration for an integration',
+  ) {
     super(integrationId, msg, {
       errorCode: ErrorCode.IntegrationConfigError,
-      httpError: HttpStatusCode.InternalServerError
+      httpError: HttpStatusCode.InternalServerError,
     });
   }
 }
 
 export class IntegrationRuntimeError extends IntegrationError {
-  constructor(integrationId, msg = 'An error occurred handling an integration request') {
+  constructor(
+    integrationId,
+    msg = 'An error occurred handling an integration request',
+  ) {
     super(integrationId, msg, {
       errorCode: ErrorCode.IntegrationRuntimeError,
-      httpError: HttpStatusCode.BadRequest
+      httpError: HttpStatusCode.BadRequest,
     });
   }
 }

@@ -1,9 +1,15 @@
 'use strict';
-/** @fileoverview contains the webring definition and Ring class */
+/**
+ * @fileoverview contains the webring definition and Ring class
+ * @author Asteria Hart <asteria@strawbs.io>
+ */
 
-import { IntegrationRuntimeError, RingDataError, RingMemberError } from './errors.js'
+import {
+  IntegrationRuntimeError,
+  RingDataError,
+  RingMemberError,
+} from './errors.js';
 import { IntegrationId } from './integrations/common.js';
-
 
 /**
  * @typedef {Object.<IntegrationId, Object>} IntegrationConfig
@@ -20,7 +26,7 @@ import { IntegrationId } from './integrations/common.js';
 
 /**
  * @typedef {Object.<string, RingMemberDefinition>} RingDefintion
- */ 
+ */
 
 /**
  * Definition block for the webring - urls for the ring are as such:
@@ -33,21 +39,21 @@ import { IntegrationId } from './integrations/common.js';
  * @type {RingDefintion}
  */
 export const RING_MEMBER_DEFINITIONS = {
-  'strawbs': {
+  strawbs: {
     title: 'strawbs.io',
     url: 'https://strawbs.io',
     owner: 'hearthsinger',
     node: undefined,
     integrations: {
       [IntegrationId.LastFM]: {
-        username: 'hearthsinger'
-      }
-    }
-  }
+        username: 'hearthsinger',
+      },
+    },
+  },
 };
 
 /**
- * Doubly-linked list node class representing ring members
+ * @classdesc Doubly-linked list node class representing ring members
  * @class
  */
 class RingMember {
@@ -56,7 +62,6 @@ class RingMember {
   _prev = null;
   _next = null;
 
- 
   /**
    * Validates ring member data, throwing if the data is malformed
    *
@@ -65,17 +70,25 @@ class RingMember {
    * @throws {Error} Throws an error if the ring member data is missing a required attribute
    */
   static checkValidRingMember(maybeRingMember) {
-    if(Array.isArray(maybeRingMember) || typeof maybeRingMember !== 'object'){
-      throw new RingMemberError('Ring member must be an object with the `title`, `url`, and `owner` attributes');
+    if (Array.isArray(maybeRingMember) || typeof maybeRingMember !== 'object') {
+      throw new RingMemberError(
+        'Ring member must be an object with the `title`, `url`, and `owner` attributes',
+      );
     }
 
-    ['title', 'url', 'owner'].forEach(attr => {
-      if(!(attr in maybeRingMember)) {
+    ['title', 'url', 'owner'].forEach((attr) => {
+      if (!(attr in maybeRingMember)) {
         throw new RingMemberError(`Ring member data missing \`${attr}\``);
       }
     });
   }
 
+  /**
+   * Constructs a new RingMember instance
+   *
+   * @param {string} key - the key/id for this ring member, appearing in backend api paths
+   * @param {RingMemberDefinition} data - the definition for the member
+   */
   constructor(key, data) {
     RingMember.checkValidRingMember(data);
     this._data = data;
@@ -138,14 +151,16 @@ class RingMember {
    * @returns {Object} The configured integration
    */
   getIntegration(integrationId) {
-    if(!this.hasIntegration(integrationId)) {
-      throw new IntegrationRuntimeError(integrationId, `Member '${this._key}' has no configuraton for the request integration`);
+    if (!this.hasIntegration(integrationId)) {
+      throw new IntegrationRuntimeError(
+        integrationId,
+        `Member '${this._key}' has no configuraton for the request integration`,
+      );
     }
-    
+
     return this._data.integrations[integrationId];
   }
 }
-
 
 /**
  * Doubly-linked list that we intentionally loop - i.e. a ring
@@ -163,14 +178,18 @@ class Ring {
    * @throws {Error} If the ring data is an array or non-object, or if it contains no keys
    */
   static checkValidRingData(maybeRingData) {
-    if(Array.isArray(maybeRingData) || typeof maybeRingData !== 'object') {
-      throw new RingDataError('Ring data must be an object keyed by ring member slugs');
+    if (Array.isArray(maybeRingData) || typeof maybeRingData !== 'object') {
+      throw new RingDataError(
+        'Ring data must be an object keyed by ring member slugs',
+      );
     }
 
-    if(Object.keys(maybeRingData).length < 1) {
-      throw new RingDataError('Ring data must contain one or more member definitions, keyed by slug');
+    if (Object.keys(maybeRingData).length < 1) {
+      throw new RingDataError(
+        'Ring data must contain one or more member definitions, keyed by slug',
+      );
     }
-  };
+  }
 
   constructor(ringData) {
     Ring.checkValidRingData(ringData);
@@ -178,11 +197,11 @@ class Ring {
     for (const [member, def] of Object.entries(ringData)) {
       // make a new node for the next member
       const newNode = new RingMember(member, def);
-     
+
       // if we haven't set head, set it
       if (this.head === null) {
         this.head = newNode;
-      } 
+      }
 
       // if we've assigned a prev (i.e. it's truthy), set this node's prev
       // and prev node's next
@@ -190,7 +209,7 @@ class Ring {
         newNode.prev = _prev;
         _prev.next = newNode;
       }
-      
+
       // put the node in mapping for O(1) lookups
       def.node = newNode;
       _prev = newNode; // this node is now the previous
@@ -214,14 +233,13 @@ class Ring {
 
         return {
           value: held,
-          done: toReturn === this.head // literally, the node is the head node
+          done: toReturn === this.head, // literally, the node is the head node
         };
-      }
+      },
     };
   }
-};
+}
 
 const RingSingleton = new Ring(RING_MEMBER_DEFINITIONS);
 
 export default RingSingleton;
-

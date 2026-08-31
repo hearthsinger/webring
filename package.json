@@ -15,7 +15,9 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "fix:prettier": "npm run lint:prettier -- -w",
+    "lint:prettier": "prettier --config .prettierrc --check"
   },
   "dependencies": {
     "convict": "^6.2.5",
@@ -24,6 +26,7 @@
     "helmet": "^8.3.0"
   },
   "devDependencies": {
-    "dotenv": "^17.4.2"
+    "dotenv": "^17.4.2",
+    "prettier": "^3.9.6"
   }
 }

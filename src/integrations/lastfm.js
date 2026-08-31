@@ -6,13 +6,24 @@ import { IntegrationId } from './common.js';
 // #region Track
 
 /**
+ * @typedef TrackJSON Track information from the last.fm API, reserialized as
+ * cleaner JSON
+ *
+ * @property {string} name - Track name, as reported by last.fm
+ * @property {string} artist - Artist name, as reported by last.fm
+ * @property {string} album - Album name, as reported by last.fm
+ * @property {string} url - Link to the track on last.fm
+ * @property {string} date - Last.fm-formatted date for the scrobble, in UTC
+ */
+
+/**
  * @classdesc Track dataclass
  */
 class Track {
   _raw = null;
 
   constructor(trackdata) {
-    this._raw = trackdata
+    this._raw = trackdata;
   }
 
   /**
@@ -22,16 +33,16 @@ class Track {
    * @returns {Track[]} The array of tracks, serialized as Track objects
    */
   static fromArray(tracks) {
-    return tracks.map(t => new Track(t));
+    return tracks.map((t) => new Track(t));
   }
 
   /**
    * Private helper to dig string values out of the last.fm track object.
    *
-   * Despite coming back to us in JSON, the response is very reminiscent of the 
+   * Despite coming back to us in JSON, the response is very reminiscent of the
    * source XML, including the embedding of some values we need as attribute-like
    * values within nested objects. Given a property name that corresponds to a
-   * top-level key of the raw object, this function returns either the 
+   * top-level key of the raw object, this function returns either the
    * corresponding value (if the value is a non-object value), or digs for the
    * `#text` property of the nested object.
    *
@@ -40,18 +51,20 @@ class Track {
    * @returns {string} The human-readable/usable value of the property
    */
   _getTrackProp(prop) {
-    if(!(prop in this._raw)){
-      throw new Error(`Unable to parse artist info from last.fm track object - could not find '${propName}'`);
+    if (!(prop in this._raw)) {
+      throw new Error(
+        `Unable to parse artist info from last.fm track object - could not find '${propName}'`,
+      );
     }
 
-    if(typeof this._raw[prop] === 'object'){
+    if (typeof this._raw[prop] === 'object') {
       return this._raw[prop]['#text'];
     }
 
     return this._raw[prop];
   }
 
-  /** 
+  /**
    * The artist name for this track
    * @readonly
    */
@@ -91,6 +104,10 @@ class Track {
     return this._getTrackProp('date');
   }
 
+  /**
+   * Returns the track as a friendlier JSON object
+   * @returns {TrackJSON} The track as friendly JSON
+   */
   toJSON() {
     return {
       name: this.name,
@@ -98,7 +115,7 @@ class Track {
       album: this.album,
       url: this.url,
       date: this.date,
-    }
+    };
   }
 }
 
@@ -115,8 +132,11 @@ class LastFMClient {
   _username = null;
 
   constructor(username) {
-    if(!this._apiKey) {
-      throw new IntegrationConfigError(IntegrationId.LastFM, 'Missing API Key for LastFM');
+    if (!this._apiKey) {
+      throw new IntegrationConfigError(
+        IntegrationId.LastFM,
+        'Missing API Key for LastFM',
+      );
     }
     this._username = username;
   }
@@ -135,14 +155,14 @@ class LastFMClient {
   _optionsToParams(options, method, usermethod = true) {
     const params = new URLSearchParams();
     for (const [k, v] of Object.entries(options)) {
-      if(typeof v === 'boolean') {
+      if (typeof v === 'boolean') {
         params.set(k, v ? 1 : 0);
       } else {
         params.set(k, v);
       }
-    };
+    }
 
-    if(usermethod) {
+    if (usermethod) {
       params.set('user', this._username);
     }
 
@@ -161,37 +181,41 @@ class LastFMClient {
    *
    * @returns {Promise<Track[]>} The last.fm API response serialized as Track objects
    */
-  async getRecentTracks(options = {
-    limit: 50,
-    page: 1,
-    extended: false,
-    from: null,
-    to: null}) {
-
+  async getRecentTracks(
+    options = {
+      limit: 50,
+      page: 1,
+      extended: false,
+      from: null,
+      to: null,
+    },
+  ) {
     const params = this._optionsToParams(options, 'user.getrecenttracks');
     const reqUrl = new URL(`${this._baseUrl}?${params}`);
 
-    const res = await fetch(reqUrl, { method: 'GET'});
+    const res = await fetch(reqUrl, { method: 'GET' });
 
-    if(!res.ok) {
+    if (!res.ok) {
       const msg = 'received non-2XX attempting to fetch recent track data';
       console.error(msg);
       console.error(await res.text());
       throw new IntegrationRuntimeError(IntegrationId.LastFM, msg);
     }
 
-
     try {
       const body = await res.json();
       const tracks = body.recenttracks;
-      if(tracks['@attr'].total < 1) {
+      if (tracks['@attr'].total < 1) {
         return [];
       }
 
       return Track.fromArray(tracks.track);
     } catch (err) {
       // This is either an issue with the LastFM API or this integration
-      throw new IntegrationError(IntegrationId.LastFM, `Failed to parse API response - ${err.message}`);
+      throw new IntegrationError(
+        IntegrationId.LastFM,
+        `Failed to parse API response - ${err.message}`,
+      );
     }
   }
 
@@ -206,7 +230,6 @@ class LastFMClient {
 }
 
 // #endregion Client
-
 
 /**
  * @typedef {import('../ring.js').RingMember} RingMember
@@ -226,14 +249,16 @@ async function getNowListening(ringMember) {
 
   console.log('Constructing lastfm client for user', username);
   const client = new LastFMClient(username);
-  const tracks = await client.getRecentTracks({limit: 1});
+  const tracks = await client.getRecentTracks({ limit: 1 });
 
-  if(tracks.length < 1) {
-    throw new IntegrationRuntimeError(IntegrationId.LastFM, 'Found no track data for requested ring member');
+  if (tracks.length < 1) {
+    throw new IntegrationRuntimeError(
+      IntegrationId.LastFM,
+      'Found no track data for requested ring member',
+    );
   }
 
   return tracks[0].toJSON();
-};
+}
 
 export default getNowListening;
-
