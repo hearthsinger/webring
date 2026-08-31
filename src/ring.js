@@ -1,13 +1,20 @@
 'use strict';
 /** @fileoverview contains the webring definition and Ring class */
 
-import { RingDataError, RingMemberError } from './errors.js'
+import { IntegrationRuntimeError, RingDataError, RingMemberError } from './errors.js'
+import { IntegrationId } from './integrations/common.js';
+
+
+/**
+ * @typedef {Object.<IntegrationId, Object>} IntegrationConfig
+ */
 
 /**
  * @typedef {Object} RingMemberDefinition
  * @property {string} title - the human-readable title of the site in the ring
  * @property {string} url - the URL of the site
  * @property {string} owner - the handle of the owner of the site
+ * @property {IntegrationConfig} integrations keyed by {@link IntegrationId}
  * @property {RingMember} [node] - set by the {@link Ring} constructor for O(1) lookups
  */
 
@@ -30,7 +37,12 @@ export const RING_MEMBER_DEFINITIONS = {
     title: 'strawbs.io',
     url: 'https://strawbs.io',
     owner: 'hearthsinger',
-    node: undefined
+    node: undefined,
+    integrations: {
+      [IntegrationId.LastFM]: {
+        username: 'hearthsinger'
+      }
+    }
   }
 };
 
@@ -105,7 +117,34 @@ class RingMember {
   set prev(member) {
     this._prev = member;
   }
-};
+
+  /**
+   * `true` if this member has a configuration set for the provided integrations
+   *
+   * @param {IntegrationId} integrationId - the integration to check. See {@link IntegrationId}
+   *
+   * @returns {boolean} `true` if the user has the integration configuration set
+   */
+  hasIntegration(integrationId) {
+    return integrationId in this._data.integrations;
+  }
+
+  /**
+   * Returns the configuration for the requested integration, if it is set
+   *
+   * @param {IntegrationId} integrationId - the integration to check. See {@link IntegrationId}
+   * @throws {IntegrationRuntimeError} If this user does not have the requested integration set
+   *
+   * @returns {Object} The configured integration
+   */
+  getIntegration(integrationId) {
+    if(!this.hasIntegration(integrationId)) {
+      throw new IntegrationRuntimeError(integrationId, `Member '${this._key}' has no configuraton for the request integration`);
+    }
+    
+    return this._data.integrations[integrationId];
+  }
+}
 
 
 /**

@@ -16,6 +16,12 @@ export const ErrorCode = Object.freeze({
   BadRingMember: 'E1001',
   /** Represents all known errors encountered serving requests */
   RequestHandlingError: 'E2000',
+  /** Represents a generic error with one of the ring's integrations */
+  IntegrationError: 'E3000',
+  /** Represents a known config state error - should only be encountered at ring startup */
+  IntegrationConfigError: 'E3001',
+  /** Represents a known runtime/request-time error for one of the ring's integrations */
+  IntegrationRuntimeError: 'E3002',
   /** Represents a generic error */
   GenericError: 'E9999'
 });
@@ -107,7 +113,7 @@ export class BadRequestError extends RingError {
  * @class
  */
 export class UnknownError extends RingError {
-  constructor(msg = 'An unknown error occured') {
+  constructor(msg = 'An unknown error occurred') {
     super(msg, {
       errorCode: ErrorCode.GenericError,
       httpError: HttpStatusCode.InternalServerError
@@ -115,3 +121,33 @@ export class UnknownError extends RingError {
   }
 }
 
+export class IntegrationError extends RingError {
+  _integrationId = null;
+
+  constructor(integrationId, msg = 'An error occurred with one of the ring\'s integrations') {
+    super(msg, {
+      errorCode: ErrorCode.IntegrationError,
+      httpError: HttpStatusCode.InternalServerError
+    });
+
+    this._integrationId = integrationId;
+  }
+}
+
+export class IntegrationConfigError extends IntegrationError {
+  constructor(integrationId, msg = 'An error occurred during configuration for an integration') {
+    super(integrationId, msg, {
+      errorCode: ErrorCode.IntegrationConfigError,
+      httpError: HttpStatusCode.InternalServerError
+    });
+  }
+}
+
+export class IntegrationRuntimeError extends IntegrationError {
+  constructor(integrationId, msg = 'An error occurred handling an integration request') {
+    super(integrationId, msg, {
+      errorCode: ErrorCode.IntegrationRuntimeError,
+      httpError: HttpStatusCode.BadRequest
+    });
+  }
+}

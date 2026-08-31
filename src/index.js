@@ -4,9 +4,13 @@
  * @author Asteria Hart <asteria@strawbs.io>
  */
 import express from 'express';
+import config from './config.js';
 import {RING_MEMBER_DEFINITIONS} from './ring.js';
 import { RingError, NotFoundError, BadRequestError, ErrorCode } from './errors.js';
-const port = process.env.PORT ?? 8080;
+import { IntegrationId } from './integrations/common.js';
+import IntegrationEntrypointMap from './integrations/index.js';
+
+const PORT = config.get('web.port');
 
 async function bootstrap() {
   const app = express();
@@ -51,6 +55,31 @@ async function bootstrap() {
     }
   });
 
+  app.get('/:key/integration/:integrationId', async (req, res, next) => {
+    const { key, integrationId: intId } = req.params;
+
+    try {
+      if(!(intId in IntegrationId)) {
+        throw new BadRequestError('Invalid integration');
+      }
+
+      if(!(key in RING_MEMBER_DEFINITIONS)) {
+        throw new NotFoundError('Invaild ring member');
+      }
+      const member = RING_MEMBER_DEFINITIONS[key].node;
+      if(!member.hasIntegration(intId)) {
+        throw new NotFoundError('No integration configuraton for this member');
+      }
+
+      const func = IntegrationEntrypointMap[intId];
+      const integrationRes = await func(member);
+      return res.status(200).json(integrationRes);
+
+    } catch (err) {
+      next(err);
+    }
+  });
+
   app.use((error, req, res, next) => {
     if( error instanceof RingError && error.httpError ){ 
       return res.status(error.httpError).json({
@@ -59,16 +88,16 @@ async function bootstrap() {
       });
     }
     return res.status(500).json({
-      error: 'message',
+      error: error.message,
       errorCode: ErrorCode.GenericError
     });
   });
 
-  app.listen(port);
+  app.listen(PORT);
   return app;
 };
 
 (async () => {
   await bootstrap();
-  console.log(`Listening on port ${port}`);
+  console.log(`Listening on port ${PORT}`);
 })();
