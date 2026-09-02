@@ -5,7 +5,7 @@
  */
 import express from 'express';
 import config from './config.js';
-import { RING_MEMBER_DEFINITIONS } from './ring.js';
+import Ring from './ring/index.js';
 import {
   RingError,
   NotFoundError,
@@ -56,11 +56,11 @@ async function bootstrap() {
         );
       }
 
-      if (!(key in RING_MEMBER_DEFINITIONS)) {
+      if (!Ring.hasMember(key)) {
         throw new NotFoundError('Invalid ring member');
       }
 
-      return res.redirect(RING_MEMBER_DEFINITIONS[key].node[direction].url);
+      return res.redirect(Ring.getMember(key)[direction].url);
     } catch (err) {
       next(err);
     }
@@ -74,10 +74,10 @@ async function bootstrap() {
         throw new BadRequestError('Invalid integration');
       }
 
-      if (!(key in RING_MEMBER_DEFINITIONS)) {
+      if (!Ring.hasMember(key)) {
         throw new NotFoundError('Invaild ring member');
       }
-      const member = RING_MEMBER_DEFINITIONS[key].node;
+      const member = Ring.getMember(key);
       if (!member.hasIntegration(intId)) {
         throw new NotFoundError('No integration configuraton for this member');
       }
@@ -91,6 +91,7 @@ async function bootstrap() {
   });
 
   app.use((error, req, res, next) => {
+    console.error(error.message, error.stack);
     if (error instanceof RingError && error.httpError) {
       return res.status(error.httpError).json({
         error: error.message,

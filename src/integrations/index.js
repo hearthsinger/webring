@@ -7,7 +7,7 @@ import { IntegrationId } from './common.js';
 
 import doLastFm from './lastfm.js';
 
-/** @typedef {import('../ring.js').RingMember} RingMember */
+/** @typedef {import('../ring/index.js').RingMember} RingMember */
 /** @typedef {Object.<IntegrationId, Function>} IntegrationEntrypointMap */
 
 /**

@@ -4,53 +4,13 @@
  * @author Asteria Hart <asteria@strawbs.io>
  */
 
+import members from './members.js';
 import {
   IntegrationRuntimeError,
   RingDataError,
   RingMemberError,
-} from './errors.js';
-import { IntegrationId } from './integrations/common.js';
-
-/**
- * @typedef {Object.<IntegrationId, Object>} IntegrationConfig
- */
-
-/**
- * @typedef {Object} RingMemberDefinition
- * @property {string} title - the human-readable title of the site in the ring
- * @property {string} url - the URL of the site
- * @property {string} owner - the handle of the owner of the site
- * @property {IntegrationConfig} integrations keyed by {@link IntegrationId}
- * @property {RingMember} [node] - set by the {@link Ring} constructor for O(1) lookups
- */
-
-/**
- * @typedef {Object.<string, RingMemberDefinition>} RingDefintion
- */
-
-/**
- * Definition block for the webring - urls for the ring are as such:
- *
- * https://<ring-url/[key]/next <-- the next member of the ring
- * https://<ring-url/[key]/prev <-- the previous member of the ring
- *
- * where `[key]` is the key in the definition object for your member
- *
- * @type {RingDefintion}
- */
-export const RING_MEMBER_DEFINITIONS = {
-  strawbs: {
-    title: 'strawbs.io',
-    url: 'https://strawbs.io',
-    owner: 'hearthsinger',
-    node: undefined,
-    integrations: {
-      [IntegrationId.LastFM]: {
-        username: 'hearthsinger',
-      },
-    },
-  },
-};
+} from '../errors.js';
+import { IntegrationId } from '../integrations/common.js';
 
 /**
  * @classdesc Doubly-linked list node class representing ring members
@@ -168,7 +128,7 @@ class RingMember {
  */
 class Ring {
   head = null;
-
+  _ringData = null;
   /**
    * Validates the ring data, only ensures the data is an object with one or
    * more keys. Member validation is performed by the {@link RingMember} class
@@ -193,8 +153,9 @@ class Ring {
 
   constructor(ringData) {
     Ring.checkValidRingData(ringData);
+    this._ringData = { ...ringData };
     let _prev; // track the previous node
-    for (const [member, def] of Object.entries(ringData)) {
+    for (const [member, def] of Object.entries(this._ringData)) {
       // make a new node for the next member
       const newNode = new RingMember(member, def);
 
@@ -238,8 +199,30 @@ class Ring {
       },
     };
   }
+
+  /**
+   * Return the member node corresponding to the memberId
+   *
+   * @param {string} memberId - the id of the member
+   *
+   * @returns {RingMember} The ring member node
+   */
+  getMember(memberId) {
+    return this._ringData[memberId].node;
+  }
+
+  /**
+   * Returns `true` if the provided memberId corresponds to a member in the ring
+   *
+   * @param {string} memberId - the id of the member
+   *
+   * @returns {boolean} `true` if the memberId corresponds to a member, `false` otherwise
+   */
+  hasMember(memberId) {
+    return memberId in this._ringData;
+  }
 }
 
-const RingSingleton = new Ring(RING_MEMBER_DEFINITIONS);
+const RingSingleton = new Ring(members);
 
 export default RingSingleton;

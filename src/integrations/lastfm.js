@@ -232,7 +232,7 @@ class LastFMClient {
 // #endregion Client
 
 /**
- * @typedef {import('../ring.js').RingMember} RingMember
+ * @typedef {import('../ring/index.js').RingMember} RingMember
  */
 
 /**

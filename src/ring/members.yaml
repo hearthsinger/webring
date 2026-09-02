@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../schemas/webring.schema.json
+members:
+  strawbs:
+    title: strawbs.io
+    url: https://strawbs.io
+    owner: hearthsinger
+    integrations:
+      LastFM:
+        username: hearthsinger

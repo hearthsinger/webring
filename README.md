@@ -2,13 +2,14 @@
 
 This is a really dumb webring implementation
 
-You can add yourself to it by sticking the right data into the constant at the
-top of the `ring.js` file.
+You can add yourself to it by adding a new ring member object to the
+`src/ring/members.yaml` file.
 
 ## Contributing
 
 This project uses [`pre-commit`](https://pre-commit.com) to enforce that the
-configured formatter (`prettier`) is run on all files and comes back clean.
+configured formatter (`prettier`) is run on all files and comes back clean, and
+that the `members.yaml` file is formatted properly.
 
 Documentation for installing `pre-commit` can be found elsewhere, it is
 recommended that you grab it from your system's package manager rather than
@@ -29,7 +30,7 @@ The app can be run via `node src/index.js`.
 
 ### Minimal changes for new members
 
-1. Ensure that your site config gets added to `ring.js`
+1. Ensure that your site config gets added to `src/ring/members.yaml`
 2. Run the app locally via `node src/index.js`
 3. Open a browser, navigate to `localhost:8080/<some-id>/next` or
    `localhost:8080/<some-id>/prev`, and validate that you are 302'd to the

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "members": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/member-schema" }
+    }
+  },
+  "required": ["members"],
+  "$defs": {
+    "member-schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "Webring Member",
+      "description": "Configuration details for ring members",
+      "type": "object",
+      "properties": {
+        "title": {
+          "description": "The human-readable title of the member site",
+          "type": "string"
+        },
+        "url": {
+          "description": "The URL, including scheme (http:// or https://) of the member site",
+          "type": "string"
+        },
+        "owner": {
+          "description": "The handle or display name of the owner of the site",
+          "type": "string"
+        },
+        "integrations": { "$ref": "#/$defs/integrations-schema" }
+      },
+      "required": ["title", "url", "owner"]
+    },
+    "integrations-schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "LastFM": { "$ref": "#/$defs/lastfm-schema" }
+      }
+    },
+    "lastfm-schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "description": "User details needed to enable/configure the Last.FM integration for a ring member",
+      "type": "object",
+      "properties": {
+        "username": {
+          "description": "The last.fm username for the ring member",
+          "type": "string"
+        }
+      },
+      "required": ["username"]
+    }
+  }
+}
