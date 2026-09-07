@@ -15,6 +15,9 @@ import {
 import { IntegrationId } from './integrations/common.js';
 import IntegrationEntrypointMap from './integrations/index.js';
 
+import ringRouter from './routes/ring.js';
+import integrationRouter from './routes/integration.js';
+
 const PORT = config.get('web.port');
 
 async function bootstrap() {
@@ -46,49 +49,10 @@ async function bootstrap() {
     next();
   });
 
-  app.get('/:key/:direction', (req, res, next) => {
-    const { key, direction } = req.params;
-
-    try {
-      if (!['next', 'prev'].includes(direction)) {
-        throw new BadRequestError(
-          'Invalid ring direction - expected one of "prev" or "next"',
-        );
-      }
-
-      if (!Ring.hasMember(key)) {
-        throw new NotFoundError('Invalid ring member');
-      }
-
-      return res.redirect(Ring.getMember(key)[direction].url);
-    } catch (err) {
-      next(err);
-    }
-  });
-
-  app.get('/:key/integration/:integrationId', async (req, res, next) => {
-    const { key, integrationId: intId } = req.params;
-
-    try {
-      if (!(intId in IntegrationId)) {
-        throw new BadRequestError('Invalid integration');
-      }
-
-      if (!Ring.hasMember(key)) {
-        throw new NotFoundError('Invaild ring member');
-      }
-      const member = Ring.getMember(key);
-      if (!member.hasIntegration(intId)) {
-        throw new NotFoundError('No integration configuraton for this member');
-      }
-
-      const func = IntegrationEntrypointMap[intId];
-      const integrationRes = await func(member);
-      return res.status(200).json(integrationRes);
-    } catch (err) {
-      next(err);
-    }
-  });
+  // Integration router needs to be mounted first to avoid attempting to
+  // validate the "integration" segment as a direction key
+  app.use('/', integrationRouter);
+  app.use('/', ringRouter);
 
   app.use((error, req, res, next) => {
     console.error(error.message, error.stack);
