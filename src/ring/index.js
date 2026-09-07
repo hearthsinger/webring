@@ -120,6 +120,19 @@ class RingMember {
 
     return this._data.integrations[integrationId];
   }
+
+  /**
+   * Returns a POJO of the public details of the ring member
+   *
+   * @returns {Object} the `title`, `url`, and `owner` of the member
+   */
+  toJSON() {
+    return {
+      title: this.title,
+      url: this.url,
+      owner: this.owner,
+    };
+  }
 }
 
 /**
@@ -129,6 +142,7 @@ class RingMember {
 class Ring {
   head = null;
   _ringData = null;
+  _size = 0;
   /**
    * Validates the ring data, only ensures the data is an object with one or
    * more keys. Member validation is performed by the {@link RingMember} class
@@ -174,6 +188,8 @@ class Ring {
       // put the node in mapping for O(1) lookups
       def.node = newNode;
       _prev = newNode; // this node is now the previous
+      // Track ring size;
+      this._size++;
     }
 
     // we've fallen off the end, connect the loop and assign head.prev to the
@@ -185,19 +201,15 @@ class Ring {
   }
 
   *[Symbol.iterator]() {
-    let toReturn = this.head;
+    let curr = this.head;
+    do {
+      yield curr;
+      curr = curr.next;
+    } while (curr !== this.head);
+  }
 
-    return {
-      next: () => {
-        let held = toReturn;
-        toReturn = toReturn.next;
-
-        return {
-          value: held,
-          done: toReturn === this.head, // literally, the node is the head node
-        };
-      },
-    };
+  get size() {
+    return this._size;
   }
 
   /**
