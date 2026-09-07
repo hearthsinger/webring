@@ -4,6 +4,8 @@
  * @author Asteria Hart <asteria@strawbs.io>
  */
 import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
 import config from './config.js';
 import Ring from './ring/index.js';
 import {
@@ -22,9 +24,13 @@ const PORT = config.get('web.port');
 
 async function bootstrap() {
   const app = express();
-
+  // set headers and basic security stuff
+  app.use(helmet());
+  app.use(cors());
+  // we parse json here
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+  // do the thing!
   app.use((req, res, next) => {
     console.log(
       `${new Date().toISOString()}:[START]\t${req.method} ${req.path}`,
