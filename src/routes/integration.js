@@ -1,6 +1,7 @@
 'use strict';
 /**
  * @file routes for the integration api
+ * @author Asteria Hart <asteria@strawbs.io>
  */
 
 import { Router } from 'express';
@@ -9,17 +10,17 @@ import {
   validateIntegrationIdMiddleware,
   validateMemberMiddleware,
 } from './utils/validation.js';
-import { BadRequestError, NotFoundError, UnknownError } from '../errors.js';
+import { NotFoundError } from '../errors.js';
 
 import Ring from '../ring/index.js';
 import IntegrationEntrypointMap from '../integrations/index.js';
 
 const router = Router();
 
-router.use('/:key/integration/:integrationId', validateMemberMiddleware);
-router.use('/:key/integration/:integrationId', validateIntegrationIdMiddleware);
+router.use('/:key/:integrationId', validateMemberMiddleware);
+router.use('/:key/:integrationId', validateIntegrationIdMiddleware);
 
-router.get('/:key/integration/:integrationId', async (req, res, next) => {
+router.get('/:key/:integrationId', async (req, res, next) => {
   const { key, integrationId: intId } = req.params;
 
   try {

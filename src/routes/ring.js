@@ -6,12 +6,13 @@
 import { Router } from 'express';
 
 import Ring from '../ring/index.js';
-import { BadRequestError, NotFoundError, UnknownError } from '../errors.js';
+import { UnknownError } from '../errors.js';
 
 import {
   validateDirectionMiddleware,
   validateMemberMiddleware,
 } from './utils/validation.js';
+import Logger from '../logger.js';
 
 const router = Router();
 
@@ -36,7 +37,7 @@ router.get('/:key/:direction', (req, res, next) => {
     const { key, direction } = req.params;
     return res.redirect(Ring.getMember(key)[direction].url);
   } catch (err) {
-    console.error('Unknown error post-validation', err);
+    Logger.error(`Unknown error post-validation: ${err.message}`);
     next(new UnknownError());
   }
 });

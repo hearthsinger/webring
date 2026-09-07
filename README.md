@@ -32,8 +32,8 @@ The app can be run via `node src/index.js`.
 
 1. Ensure that your site config gets added to `src/ring/members.yaml`
 2. Run the app locally via `node src/index.js`
-3. Open a browser, navigate to `localhost:8080/<some-id>/next` or
-   `localhost:8080/<some-id>/prev`, and validate that you are 302'd to the
+3. Open a browser, navigate to `localhost:8080/ring/<some-id>/next` or
+   `localhost:8080/ring/<some-id>/prev`, and validate that you are 302'd to the
    sites before and after your new site in the list.
    - You can also pick the site before/after yours and use the `/next`/`/prev`
      routes respectively to ensure you land on your site!

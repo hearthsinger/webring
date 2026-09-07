@@ -1,6 +1,7 @@
 'use strict';
 /**
  * @file shared validators
+ * @author Asteria Hart <asteria@strawbs.io>
  */
 import Ring from '../../ring/index.js';
 import { IntegrationId } from '../../integrations/common.js';

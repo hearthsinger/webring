@@ -6,16 +6,10 @@
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
+
+import Logger from './logger.js';
 import config from './config.js';
-import Ring from './ring/index.js';
-import {
-  RingError,
-  NotFoundError,
-  BadRequestError,
-  ErrorCode,
-} from './errors.js';
-import { IntegrationId } from './integrations/common.js';
-import IntegrationEntrypointMap from './integrations/index.js';
+import { RingError, ErrorCode } from './errors.js';
 
 import ringRouter from './routes/ring.js';
 import integrationRouter from './routes/integration.js';
@@ -23,6 +17,8 @@ import integrationRouter from './routes/integration.js';
 const PORT = config.get('web.port');
 
 async function bootstrap() {
+  console.log(`log level: ${config.get('logging.level')}`);
+  Logger.setLevel(config.get('logging.level'));
   const app = express();
   // set headers and basic security stuff
   app.use(helmet());
@@ -32,42 +28,35 @@ async function bootstrap() {
   app.use(express.urlencoded({ extended: true }));
   // do the thing!
   app.use((req, res, next) => {
-    console.log(
-      `${new Date().toISOString()}:[START]\t${req.method} ${req.path}`,
-    );
+    Logger.info(`[START]\t${req.method} ${req.path}`);
     const originalSend = res.send;
     res.send = (...args) => {
-      console.log(
-        `${new Date().toISOString()}:[END]\t\t${req.method} ${req.path} (${res.statusCode})`,
-      );
+      Logger.info(`[END]\t\t${req.method} ${req.path} (${res.statusCode})`);
       return originalSend.apply(res, args);
     };
 
     const originalRedir = res.redirect;
 
     res.redirect = (...args) => {
-      console.log(
-        `${new Date().toISOString()}:[REDIR]\t${req.method} ${req.path} -> (${args[0]})`,
-      );
+      Logger.info(`[REDIR]\t${req.method} ${req.path} -> (${args[0]})`);
       return originalRedir.apply(res, args);
     };
 
     next();
   });
 
-  // Integration router needs to be mounted first to avoid attempting to
-  // validate the "integration" segment as a direction key
-  app.use('/', integrationRouter);
-  app.use('/', ringRouter);
+  app.use('/integration', integrationRouter);
+  app.use('/ring', ringRouter);
 
   app.use((error, req, res, next) => {
-    console.error(error.message, error.stack);
     if (error instanceof RingError && error.httpError) {
+      Logger.warn(error.message);
       return res.status(error.httpError).json({
         error: error.message,
         errorCode: error.errorCode,
       });
     }
+    Logger.error(error.message);
     return res.status(500).json({
       error: error.message,
       errorCode: ErrorCode.GenericError,
@@ -80,5 +69,5 @@ async function bootstrap() {
 
 (async () => {
   await bootstrap();
-  console.log(`Listening on port ${PORT}`);
+  Logger.info(`Listening on port ${PORT}`);
 })();

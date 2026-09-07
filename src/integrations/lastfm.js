@@ -1,5 +1,6 @@
 import config from '../config.js';
 import { IntegrationConfigError, IntegrationRuntimeError } from '../errors.js';
+import Logger from '../logger.js';
 
 import { IntegrationId } from './common.js';
 
@@ -197,8 +198,6 @@ class LastFMClient {
 
     if (!res.ok) {
       const msg = 'received non-2XX attempting to fetch recent track data';
-      console.error(msg);
-      console.error(await res.text());
       throw new IntegrationRuntimeError(IntegrationId.LastFM, msg);
     }
 
@@ -247,7 +246,7 @@ async function getNowListening(ringMember) {
   const integration = ringMember.getIntegration(IntegrationId.LastFM);
   const { username } = integration;
 
-  console.log('Constructing lastfm client for user', username);
+  Logger.info('Constructing lastfm client for user', username);
   const client = new LastFMClient(username);
   const tracks = await client.getRecentTracks({ limit: 1 });
 

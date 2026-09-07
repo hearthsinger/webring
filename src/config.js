@@ -6,17 +6,13 @@
 import { createRequire } from 'node:module';
 
 import convict from 'convict';
-
 const require = createRequire(import.meta.url);
 
 (function loadEnv() {
   try {
     require('dotenv').config({ quiet: true });
   } catch (err) {
-    console.warn(
-      'Unable to import dotenv - ignore this in production!',
-      err.message,
-    );
+    Logger.warn('Unable to import dotenv - ignore this in production!');
   }
 })();
 
@@ -24,6 +20,13 @@ const require = createRequire(import.meta.url);
  * app config object via convict
  */
 const config = convict({
+  node: {
+    env: {
+      doc: 'the NODE_ENV var - configures library internals',
+      default: 'production',
+      env: 'NODE_ENV',
+    },
+  },
   web: {
     port: {
       doc: 'Port on which to host the webring backend.',
@@ -38,6 +41,15 @@ const config = convict({
       default: '0.0.0.0',
       env: 'HOST',
       arg: 'host',
+    },
+  },
+  logging: {
+    level: {
+      doc: 'Log Level',
+      format: ['debug', 'info', 'warn', 'error'],
+      default: 'info',
+      env: 'LOG_LEVEL',
+      arg: 'log-level',
     },
   },
   integrations: {
