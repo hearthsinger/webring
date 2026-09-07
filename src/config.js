@@ -6,6 +6,8 @@
 import { createRequire } from 'node:module';
 
 import convict from 'convict';
+import Logger from './logger.js';
+
 const require = createRequire(import.meta.url);
 
 (function loadEnv() {
