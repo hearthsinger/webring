@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matched-files: ${{ steps.diff-files.outputs.matched-files }}
+      force: ${{ steps.check-commit.outputs.force }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -24,12 +25,26 @@ jobs:
         id: diff-files
         run: echo "matched-files=$(git lg HEAD^1..HEAD --raw --no-decorate --name-only --pretty=oneline | tail -n +2 | set -n -r '/static|(.*\.css)|(.*\.html)|src|assets' | wc -l)" >> $GITHUB_OUTPUT
 
+      - name: Check commit
+        id: check-commit
+        run: |
+          MESSAGE=$(git log -1 --format=%s)
+          SCOPE=$(echo "${MESSAGE}" |sed -n 's/^[^ (]*(\([^)]*\)).*/\1/p')
+          echo "## Preflight"
+          echo "Detected scope: **\`${SCOPE:-none}\`**" >> $GITHUB_STEP_SUMMARY
+
+          if [ ${SCOPE} = 'force-neocities' ]; then
+            echo "force=true" >> $GITHUB_OUTPUT
+          else
+            echo "force=false" >> $GITHUB_OUTPUT
+          fi
+
   build:
     environment:
       name: neocities
     needs: check-changes
     runs-on: ubuntu-latest
-    if: ${{ needs.check-changes.outputs.matched-files != '0' }}
+    if: ${{ needs.check-changes.outputs.matched-files != '0' || needs.check-changes.outputs.force == 'true' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
