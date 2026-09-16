@@ -12,11 +12,8 @@ async function fetchMembers() {
 
   const { members } = await res.json();
 
-  console.log('got members', members);
-
   const elements = members
     .map((member) => {
-      console.log('processing member', member);
       const link = document.createElement('a');
 
       link.setAttribute('href', member.url);
@@ -31,11 +28,8 @@ async function fetchMembers() {
       item.append(document.createElement('br'));
       item.append(`↳ ${description}`);
 
-      console.log('have item', item);
       return item;
     });
-
-  console.log('elements', elements);
 
   const list = document.querySelector('#directory');
   list.append(...elements);
