@@ -23,7 +23,7 @@ jobs:
 
       - name: Check files
         id: diff-files
-        run: echo "matched-files=$(git lg HEAD^1..HEAD --raw --no-decorate --name-only --pretty=oneline | tail -n +2 | set -n -r '/static|(.*\.css)|(.*\.html)|src|assets' | wc -l)" >> $GITHUB_OUTPUT
+        run: echo "matched-files=$(git log HEAD^1..HEAD --raw --no-decorate --name-only --pretty=oneline | tail -n +2 | set -n -r '/static|(.*\.css)|(.*\.html)|src|assets' | wc -l)" >> $GITHUB_OUTPUT
 
       - name: Check commit
         id: check-commit
