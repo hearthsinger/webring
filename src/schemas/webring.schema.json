@@ -27,9 +27,13 @@
           "description": "The handle or display name of the owner of the site",
           "type": "string"
         },
+        "description": {
+          "description": "One sentence about the site",
+          "type": "string"
+        },
         "integrations": { "$ref": "#/$defs/integrations-schema" }
       },
-      "required": ["title", "url", "owner"]
+      "required": ["title", "url", "owner", "description"]
     },
     "integrations-schema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",

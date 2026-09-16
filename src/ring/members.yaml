@@ -4,6 +4,8 @@ members:
     title: strawbs.io
     url: https://strawbs.io
     owner: hearthsinger
+    description: >
+      A minimalist personal site and blog
     integrations:
       LastFM:
         username: hearthsinger
