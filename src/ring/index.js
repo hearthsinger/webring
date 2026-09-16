@@ -67,6 +67,10 @@ class RingMember {
     return this._data.title;
   }
 
+  get description() {
+    return this._data.description.trim();
+  }
+
   get next() {
     return this._next;
   }
@@ -131,6 +135,7 @@ class RingMember {
       title: this.title,
       url: this.url,
       owner: this.owner,
+      description: this.description,
     };
   }
 }
